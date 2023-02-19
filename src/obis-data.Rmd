@@ -40,7 +40,7 @@ max_end_date <- year(end_date + years(1))  # 1700
 occ <- occurrence(enddate = end_date)
 
 # list all eventDate prior end_date
-occ %>% count(eventDate)
+occ$eventDate
 
 # plot histogram of the year
 ggplot(occ, aes(date_year)) + 
