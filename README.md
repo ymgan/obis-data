@@ -9,8 +9,8 @@ Notebooks to look at data in OBIS.
 .
 ├── LICENSE
 ├── README.md
-├── obis-data.Rproj				R project file
-└── src							source code
+├── obis-data.Rproj			R project file
+└── src					source code
     ├── obis-data.Rmd			
     └── obis-data.nb.html
 ```
