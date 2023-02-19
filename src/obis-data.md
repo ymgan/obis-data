@@ -107,22 +107,32 @@ Out of curiousity, check what datasets that have those `date_year`
 
 ``` r
 occ %>% 
-  count(dataset_id) %>%
+  count(date_year, dataset_id) %>%
   rowwise() %>%
   mutate(datasetName = dataset(datasetid = dataset_id)$title)
 ```
 
-    ## # A tibble: 10 × 3
+    ## # A tibble: 20 × 4
     ## # Rowwise: 
-    ##    dataset_id                               n datasetName                       
-    ##    <chr>                                <int> <chr>                             
-    ##  1 125415a6-c5b8-4c81-9050-324deb4a0e5a     1 Historical strandings of cetacean…
-    ##  2 331444c9-952b-4365-8afa-c4bf38f6a2ef     1 Marine mammal records of Cuba     
-    ##  3 36fbc01b-72bd-42f0-af0a-e1701cddcf94    14 FishNet2 Marine Data              
-    ##  4 5e6ee2aa-8155-452b-97e3-14d2835c85a0     4 NuSEDS - New Salmon Escapement Da…
-    ##  5 6c6df99a-7670-40b4-8eaa-f2e374ed4da6     1 hab_region_11                     
-    ##  6 aa16d305-d413-4c4a-90be-b1ec3298d58d     5 CAS Invertebrate Zoology (IZ)     
-    ##  7 c5687a17-e454-40f9-9a4b-d04b2c812d74    48 UF Invertebrate Zoology           
-    ##  8 d104db68-63cf-4f34-b92a-54bd55a07394     1 Museums Victoria Marine Invertebr…
-    ##  9 e3ab9e10-7857-494a-867c-ff8d9e5b1111     2 SPF Marine Algae Collection of Sa…
-    ## 10 f4775120-afcc-4350-9e03-649c978f6070     2 SOMBASE/TOTAL - Bioconstructors
+    ##    date_year dataset_id                               n datasetName             
+    ##        <int> <chr>                                <int> <chr>                   
+    ##  1         1 c5687a17-e454-40f9-9a4b-d04b2c812d74    47 UF Invertebrate Zoology 
+    ##  2       196 aa16d305-d413-4c4a-90be-b1ec3298d58d     5 CAS Invertebrate Zoolog…
+    ##  3      1064 36fbc01b-72bd-42f0-af0a-e1701cddcf94     2 FishNet2 Marine Data    
+    ##  4      1071 36fbc01b-72bd-42f0-af0a-e1701cddcf94     2 FishNet2 Marine Data    
+    ##  5      1073 36fbc01b-72bd-42f0-af0a-e1701cddcf94     2 FishNet2 Marine Data    
+    ##  6      1076 36fbc01b-72bd-42f0-af0a-e1701cddcf94     1 FishNet2 Marine Data    
+    ##  7      1103 5e6ee2aa-8155-452b-97e3-14d2835c85a0     1 NuSEDS - New Salmon Esc…
+    ##  8      1104 5e6ee2aa-8155-452b-97e3-14d2835c85a0     1 NuSEDS - New Salmon Esc…
+    ##  9      1119 5e6ee2aa-8155-452b-97e3-14d2835c85a0     2 NuSEDS - New Salmon Esc…
+    ## 10      1152 c5687a17-e454-40f9-9a4b-d04b2c812d74     1 UF Invertebrate Zoology 
+    ## 11      1193 36fbc01b-72bd-42f0-af0a-e1701cddcf94     1 FishNet2 Marine Data    
+    ## 12      1199 36fbc01b-72bd-42f0-af0a-e1701cddcf94     4 FishNet2 Marine Data    
+    ## 13      1200 36fbc01b-72bd-42f0-af0a-e1701cddcf94     1 FishNet2 Marine Data    
+    ## 14      1291 36fbc01b-72bd-42f0-af0a-e1701cddcf94     1 FishNet2 Marine Data    
+    ## 15      1520 331444c9-952b-4365-8afa-c4bf38f6a2ef     1 Marine mammal records o…
+    ## 16      1526 125415a6-c5b8-4c81-9050-324deb4a0e5a     1 Historical strandings o…
+    ## 17      1596 6c6df99a-7670-40b4-8eaa-f2e374ed4da6     1 hab_region_11           
+    ## 18      1648 e3ab9e10-7857-494a-867c-ff8d9e5b1111     2 SPF Marine Algae Collec…
+    ## 19      1691 f4775120-afcc-4350-9e03-649c978f6070     2 SOMBASE/TOTAL - Biocons…
+    ## 20      1698 d104db68-63cf-4f34-b92a-54bd55a07394     1 Museums Victoria Marine…

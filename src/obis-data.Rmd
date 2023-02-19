@@ -53,7 +53,7 @@ Out of curiousity, check what datasets that have those `date_year`
 
 ```{r old datasets, warning=FALSE, message=FALSE}
 occ %>% 
-  count(dataset_id) %>%
+  count(date_year, dataset_id) %>%
   rowwise() %>%
   mutate(datasetName = dataset(datasetid = dataset_id)$title)
 ```
