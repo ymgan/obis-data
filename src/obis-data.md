@@ -51,6 +51,8 @@ df
     ## 19 1899-12-31 1900-01-01            184827
     ## 20 1999-12-31 2000-01-01          36262055
 
+## Occurrences prior 1700
+
 Seems like there are many dates with 0001! Let’s see what are the dates.
 
 ``` r

@@ -28,6 +28,8 @@ while (end_date < today()) {
 df
 ```
 
+## Occurrences prior 1700
+
 Seems like there are many dates with 0001! Let's see what are the dates.
 
 ```{r unique years, warning=FALSE, message=FALSE}
