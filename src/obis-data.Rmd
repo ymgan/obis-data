@@ -1,0 +1,49 @@
+---
+title: "Check date in OBIS data"
+output: html_notebook
+---
+
+Create a tibble of cut off date (end date) and a count of records with that end date.
+
+```{r check record, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(lubridate)
+library(httr)
+
+url <- "https://api.obis.org/"
+end_date <- ymd("0099-12-31")
+earliest_valid_date = ymd("0100-01-01")
+df <- as.tibble(data.frame(end_date = Date(), earliest_valid_date = Date(), count = numeric()))
+
+while (end_date < today()) {
+  r = GET(url, path = "v3/occurrence", query = list(enddate = end_date))
+  count <- content(r)$total  # get the count of records from query content
+  df <- df %>% add_row(end_date = end_date, earliest_valid_date = earliest_valid_date, count = count)
+  end_date <- end_date + years(100)
+  earliest_valid_date <- earliest_valid_date + years(100)
+}
+
+df
+```
+
+Seems like there are many dates with 0001! Let's see what are the dates.
+
+```{r unique years, warning=FALSE, message=FALSE}
+library(robis)
+
+end_date <- ymd("1699-12-31")
+max_end_date <- year(end_date + years(1))  # 1700
+
+# get all occurrence with enddate = end_date
+occ <- occurrence(enddate = end_date)
+
+# list all eventDate prior end_date
+occ %>% count(eventDate)
+
+# plot histogram of the year
+ggplot(occ, aes(date_year)) + 
+  geom_histogram(bins=100) +
+  scale_x_continuous(breaks = seq(0, max_end_date, 100))
+
+```
+
