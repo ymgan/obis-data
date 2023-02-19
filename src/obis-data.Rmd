@@ -1,6 +1,8 @@
 ---
 title: "Check date in OBIS data"
-output: html_notebook
+author: "Yi-Ming Gan"
+date: "`r Sys.Date()`"
+output: github_document
 ---
 
 Create a tibble of cut off date (end date) and a count of records with that end date.
