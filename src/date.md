@@ -11,25 +11,62 @@ library(tidyverse)
 library(lubridate)
 library(httr)
 
+# create tibble with end_date, 100 years interval
 occ_df <- tibble(end_date = seq(ymd("0099-12-31"), ymd(today()), "100 years"))
 
+# function to get occurrence record count per end_date
 get_occ_count_with_end_date <- function(end_date){
   url <- "https://api.obis.org/"
   r = GET(url, path = "v3/occurrence", query = list(enddate = end_date))
   count <- content(r)$total  # get the count of records from query content
   return(count)
 }
+
+# create columns of record count for the end_date and earliest valid date
+occ_df <- occ_df %>%
+  rowwise() %>%
+  mutate(
+    count = get_occ_count_with_end_date(end_date),
+    earliest_valid_date = end_date + days(1))
+
+occ_df
 ```
+
+    ## # A tibble: 20 × 3
+    ## # Rowwise: 
+    ##    end_date      count earliest_valid_date
+    ##    <date>        <int> <date>             
+    ##  1 0099-12-31       47 0100-01-01         
+    ##  2 0199-12-31       52 0200-01-01         
+    ##  3 0299-12-31       52 0300-01-01         
+    ##  4 0399-12-31       52 0400-01-01         
+    ##  5 0499-12-31       52 0500-01-01         
+    ##  6 0599-12-31       52 0600-01-01         
+    ##  7 0699-12-31       52 0700-01-01         
+    ##  8 0799-12-31       52 0800-01-01         
+    ##  9 0899-12-31       52 0900-01-01         
+    ## 10 0999-12-31       52 1000-01-01         
+    ## 11 1099-12-31       59 1100-01-01         
+    ## 12 1199-12-31       69 1200-01-01         
+    ## 13 1299-12-31       71 1300-01-01         
+    ## 14 1399-12-31       71 1400-01-01         
+    ## 15 1499-12-31       71 1500-01-01         
+    ## 16 1599-12-31       74 1600-01-01         
+    ## 17 1699-12-31       79 1700-01-01         
+    ## 18 1799-12-31    22110 1800-01-01         
+    ## 19 1899-12-31   184827 1900-01-01         
+    ## 20 1999-12-31 36262055 2000-01-01
 
 ## Occurrences with end date prior 1700
 
-Seems like there are many dates with 0001! Let’s see what are the dates.
+The number of dates with 0001 seems unusual … Let’s see what are the
+dates.
 
 ``` r
 library(robis)
 
 end_date <- ymd("1699-12-31")
-max_end_date <- year(end_date + years(1))  # 1700
+max_end_date <- year(end_date + years(1))  # 1700, for x-axis
 
 # get all occurrence with enddate = end_date
 occ <- occurrence(enddate = end_date)
@@ -73,9 +110,9 @@ ggplot(occ, aes(date_year)) +
   scale_x_continuous(breaks = seq(0, max_end_date, 100))
 ```
 
-![](obis-data_files/figure-gfm/unique%20years-1.png)<!-- -->
+![](date_files/figure-gfm/unique%20years-1.png)<!-- -->
 
-Out of curiousity, check what datasets that have those `date_year`
+Out of curiosity, check which datasets have those `date_year`
 
 ``` r
 occ %>% 
