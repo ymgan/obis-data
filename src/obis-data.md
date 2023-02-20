@@ -1,7 +1,7 @@
 Check date in OBIS data
 ================
 Yi-Ming Gan
-2023-02-19
+2023-02-20
 
 Create a tibble of cut off date (end date) and a count of records with
 that end date.
@@ -11,47 +11,17 @@ library(tidyverse)
 library(lubridate)
 library(httr)
 
-url <- "https://api.obis.org/"
-end_date <- ymd("0099-12-31")
-earliest_valid_date = ymd("0100-01-01")
-df <- as.tibble(data.frame(end_date = Date(), earliest_valid_date = Date(), count = numeric()))
+occ_df <- tibble(end_date = seq(ymd("0099-12-31"), ymd(today()), "100 years"))
 
-while (end_date < today()) {
+get_occ_count_with_end_date <- function(end_date){
+  url <- "https://api.obis.org/"
   r = GET(url, path = "v3/occurrence", query = list(enddate = end_date))
   count <- content(r)$total  # get the count of records from query content
-  df <- df %>% add_row(end_date = end_date, earliest_valid_date = earliest_valid_date, count = count)
-  end_date <- end_date + years(100)
-  earliest_valid_date <- earliest_valid_date + years(100)
+  return(count)
 }
-
-df
 ```
 
-    ## # A tibble: 20 × 3
-    ##    end_date   earliest_valid_date    count
-    ##    <date>     <date>                 <dbl>
-    ##  1 0099-12-31 0100-01-01                47
-    ##  2 0199-12-31 0200-01-01                52
-    ##  3 0299-12-31 0300-01-01                52
-    ##  4 0399-12-31 0400-01-01                52
-    ##  5 0499-12-31 0500-01-01                52
-    ##  6 0599-12-31 0600-01-01                52
-    ##  7 0699-12-31 0700-01-01                52
-    ##  8 0799-12-31 0800-01-01                52
-    ##  9 0899-12-31 0900-01-01                52
-    ## 10 0999-12-31 1000-01-01                52
-    ## 11 1099-12-31 1100-01-01                59
-    ## 12 1199-12-31 1200-01-01                69
-    ## 13 1299-12-31 1300-01-01                71
-    ## 14 1399-12-31 1400-01-01                71
-    ## 15 1499-12-31 1500-01-01                71
-    ## 16 1599-12-31 1600-01-01                74
-    ## 17 1699-12-31 1700-01-01                79
-    ## 18 1799-12-31 1800-01-01             22110
-    ## 19 1899-12-31 1900-01-01            184827
-    ## 20 1999-12-31 2000-01-01          36262055
-
-## Occurrences prior 1700
+## Occurrences with end date prior 1700
 
 Seems like there are many dates with 0001! Let’s see what are the dates.
 
