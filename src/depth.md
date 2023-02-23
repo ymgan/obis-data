@@ -23,7 +23,7 @@ There are many records with negative depth. How many are they?
 ``` r
 # variables
 end_depth = 0  # in meters
-max_end_depth = -11000
+max_end_depth = -100000  # minimum depth in current obis-qc checks
 
 # initialize tibble with end_depth at 100m interval
 occ_df <- tibble(end_depth = seq(0, max_end_depth, -100))
@@ -46,7 +46,7 @@ occ_df <- occ_df %>%
 occ_df
 ```
 
-    ## # A tibble: 111 × 2
+    ## # A tibble: 1,001 × 2
     ## # Rowwise: 
     ##    end_depth   count
     ##        <dbl>   <int>
@@ -60,7 +60,7 @@ occ_df
     ##  8      -700    2803
     ##  9      -800    2321
     ## 10      -900    1978
-    ## # … with 101 more rows
+    ## # … with 991 more rows
 
 ``` r
 # plot them into bar chart
