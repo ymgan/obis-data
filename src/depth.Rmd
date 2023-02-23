@@ -5,8 +5,11 @@ date: "`r Sys.Date()`"
 output: github_document
 ---
 
-## Check records with depth <= 0 meters
+## Check records with depth < 0 meters
 
+### end depth < 0
+
+Number of records with end depth = -1
 
 ```{r check depth record, warning=FALSE, message=FALSE}
 library(tidyverse)
@@ -15,19 +18,18 @@ library(httr)
 library(robis)
 
 url <- "https://api.obis.org/"
-r = GET(url, path = "v3/occurrence", query = list(enddepth = 0))
+r = GET(url, path = "v3/occurrence", query = list(enddepth = -1))
 content(r)$total
 ```
 
-There are many records with negative depth. How many are they?
 
-```{r depth occ count, warning=FALSE, message=FALSE}
+```{r end depth occ count, warning=FALSE, message=FALSE}
 # variables
 end_depth = 0  # in meters
 max_end_depth = -100000  # minimum depth in current obis-qc checks
 
 # initialize tibble with end_depth at 100m interval
-occ_df <- tibble(end_depth = seq(0, max_end_depth, -100))
+end_depth_occ_df <- tibble(end_depth = seq(0, max_end_depth, -100))
 
 # function to get occurrence record count per end_depth
 get_occ_count_with_end_depth <- function(end_depth){
@@ -38,43 +40,73 @@ get_occ_count_with_end_depth <- function(end_depth){
 }
 
 # create columns of record count for each of end_depth
-occ_df <- occ_df %>%
+end_depth_occ_df <- end_depth_occ_df %>%
   rowwise() %>%
-  mutate(
-    count = get_occ_count_with_end_depth(end_depth)
-    )
+  mutate(count = get_occ_count_with_end_depth(end_depth))
 
-occ_df
+end_depth_occ_df 
 
 # plot them into bar chart
-ggplot(occ_df, aes(x = end_depth, y = count)) + 
+ggplot(end_depth_occ_df, aes(x = end_depth, y = count)) + 
   geom_bar(stat = "identity") +
-  scale_y_continuous(trans="log10")
+  scale_y_continuous(trans = "log10")
 ```
 
-## What are taxa of these records where depth < 0?
+### start depth < 0
 
-Since the web service takes integer for `enddepth` and 0 is a valid depth value. Attempt query for facets with taxon `class` with enddepth = -1.
+skipping start depth analysis because it took forever
 
-```{r taxon class negative depth, warning=FALSE, message=FALSE}
-# GET request with parameters
+## Facets
+
+### minimumDepthInMeters
+
+Where are the negative depth with enddepth < 0 then? 
+
+```{r min depth, warning=FALSE, message=FALSE}
 url <- "https://api.obis.org/"
-r <- GET(url, path = "v3/facet", query = list(facets = "class", enddepth = -1))
-results <- content(r)$results$class
+r <- GET(url, path = "v3/facet", query = list(facets = "minimumDepthInMeters"))
+res <- content(r)$results$minimumDepthInMeters
 
-# create a tibble of each taxonomic class with the count
-class_negative_depth <- tibble(
-  class = map_chr(results, "key"),
-  count = map_int(results, "records")
-) %>% arrange(desc(count))
+min_depth <- tibble(
+  minimumDepthInMeters = map_int(res, "key"),
+  count = map_int(res, "records")
+)
 
-class_negative_depth
-
-ggplot(class_negative_depth, aes(x = count, y = class)) + 
-  geom_col(stat = "identity")
-
+ggplot(min_depth, aes(x = minimumDepthInMeters, y = count)) +
+  geom_bar(stat = "identity")
 ```
 
-Aside from birds (Aves) where the records should not use `minimumDepthInMeters` and `maximumDepthInMeters` to document the distance above surface, the rest of the records with negative depth seems to be misunderstanding of the terms definition.
+### maximumDepthInMeters
 
+```{r max depth, warning=FALSE, message=FALSE}
+url <- "https://api.obis.org/"
+r <- GET(url, path = "v3/facet", query = list(facets = "maximumDepthInMeters"))
+res <- content(r)$results$maximumDepthInMeters
 
+max_depth <- tibble(
+  maximumDepthInMeters = map_int(res, "key"),
+  count = map_int(res, "records")
+)
+
+ggplot(max_depth, aes(x = maximumDepthInMeters, y = count)) +
+  geom_bar(stat = "identity")
+```
+
+### verbatimDepth
+
+```{r verbatim depth, warning=FALSE, message=FALSE}
+url <- "https://api.obis.org/"
+r <- GET(url, path = "v3/facet", query = list(facets = "verbatimDepth"))
+res <- content(r)$results$verbatimDepth
+
+verbatim_depth <- tibble(
+  verbatimDepth = map_chr(res, "key"),
+  count = map_int(res, "records")
+)
+
+ggplot(verbatim_depth, aes(x = verbatimDepth, y = count)) +
+  geom_bar(stat = "identity") +
+  coord_flip()
+```
+
+I don't know what are these, I don't understand it but I tried. Please take it with a grain of salt, bye :3

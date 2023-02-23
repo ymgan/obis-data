@@ -3,7 +3,11 @@ Check depth in OBIS data
 Yi-Ming Gan
 2023-02-23
 
-## Check records with depth \<= 0 meters
+## Check records with depth \< 0 meters
+
+### end depth \< 0
+
+Number of records with end depth = -1
 
 ``` r
 library(tidyverse)
@@ -12,13 +16,11 @@ library(httr)
 library(robis)
 
 url <- "https://api.obis.org/"
-r = GET(url, path = "v3/occurrence", query = list(enddepth = 0))
+r = GET(url, path = "v3/occurrence", query = list(enddepth = -1))
 content(r)$total
 ```
 
-    ## [1] 8772541
-
-There are many records with negative depth. How many are they?
+    ## [1] 197060
 
 ``` r
 # variables
@@ -26,7 +28,7 @@ end_depth = 0  # in meters
 max_end_depth = -100000  # minimum depth in current obis-qc checks
 
 # initialize tibble with end_depth at 100m interval
-occ_df <- tibble(end_depth = seq(0, max_end_depth, -100))
+end_depth_occ_df <- tibble(end_depth = seq(0, max_end_depth, -100))
 
 # function to get occurrence record count per end_depth
 get_occ_count_with_end_depth <- function(end_depth){
@@ -37,13 +39,11 @@ get_occ_count_with_end_depth <- function(end_depth){
 }
 
 # create columns of record count for each of end_depth
-occ_df <- occ_df %>%
+end_depth_occ_df <- end_depth_occ_df %>%
   rowwise() %>%
-  mutate(
-    count = get_occ_count_with_end_depth(end_depth)
-    )
+  mutate(count = get_occ_count_with_end_depth(end_depth))
 
-occ_df
+end_depth_occ_df 
 ```
 
     ## # A tibble: 1,001 × 2
@@ -64,56 +64,75 @@ occ_df
 
 ``` r
 # plot them into bar chart
-ggplot(occ_df, aes(x = end_depth, y = count)) + 
+ggplot(end_depth_occ_df, aes(x = end_depth, y = count)) + 
   geom_bar(stat = "identity") +
-  scale_y_continuous(trans="log10")
+  scale_y_continuous(trans = "log10")
 ```
 
-![](depth_files/figure-gfm/depth%20occ%20count-1.png)<!-- -->
+![](depth_files/figure-gfm/end%20depth%20occ%20count-1.png)<!-- -->
 
-## What are taxa of these records where depth \< 0?
+### start depth \< 0
 
-Since the web service takes integer for `enddepth` and 0 is a valid
-depth value. Attempt query for facets with taxon `class` with enddepth =
--1.
+skipping start depth analysis because it took forever
+
+## Facets
+
+### minimumDepthInMeters
+
+Where are the negative depth with enddepth \< 0 then?
 
 ``` r
-# GET request with parameters
 url <- "https://api.obis.org/"
-r <- GET(url, path = "v3/facet", query = list(facets = "class", enddepth = -1))
-results <- content(r)$results$class
+r <- GET(url, path = "v3/facet", query = list(facets = "minimumDepthInMeters"))
+res <- content(r)$results$minimumDepthInMeters
 
-# create a tibble of each taxonomic class with the count
-class_negative_depth <- tibble(
-  class = map_chr(results, "key"),
-  count = map_int(results, "records")
-) %>% arrange(desc(count))
+min_depth <- tibble(
+  minimumDepthInMeters = map_int(res, "key"),
+  count = map_int(res, "records")
+)
 
-class_negative_depth
+ggplot(min_depth, aes(x = minimumDepthInMeters, y = count)) +
+  geom_bar(stat = "identity")
 ```
 
-    ## # A tibble: 10 × 2
-    ##    class          count
-    ##    <chr>          <int>
-    ##  1 Actinopteri    89360
-    ##  2 Aves           44425
-    ##  3 Gastropoda     25489
-    ##  4 Asteroidea     14040
-    ##  5 Bivalvia        7312
-    ##  6 Elasmobranchii  5449
-    ##  7 Malacostraca    2174
-    ##  8 Polyplacophora  2120
-    ##  9 Dinophyceae     1266
-    ## 10 Polychaeta       884
+![](depth_files/figure-gfm/min%20depth-1.png)<!-- -->
+
+### maximumDepthInMeters
 
 ``` r
-ggplot(class_negative_depth, aes(x = count, y = class)) + 
-  geom_col(stat = "identity")
+url <- "https://api.obis.org/"
+r <- GET(url, path = "v3/facet", query = list(facets = "maximumDepthInMeters"))
+res <- content(r)$results$maximumDepthInMeters
+
+max_depth <- tibble(
+  maximumDepthInMeters = map_int(res, "key"),
+  count = map_int(res, "records")
+)
+
+ggplot(max_depth, aes(x = maximumDepthInMeters, y = count)) +
+  geom_bar(stat = "identity")
 ```
 
-![](depth_files/figure-gfm/taxon%20class%20negative%20depth-1.png)<!-- -->
+![](depth_files/figure-gfm/max%20depth-1.png)<!-- -->
 
-Aside from birds (Aves) where the records should not use
-`minimumDepthInMeters` and `maximumDepthInMeters` to document the
-distance above surface, the rest of the records with negative depth
-seems to be misunderstanding of the terms definition.
+### verbatimDepth
+
+``` r
+url <- "https://api.obis.org/"
+r <- GET(url, path = "v3/facet", query = list(facets = "verbatimDepth"))
+res <- content(r)$results$verbatimDepth
+
+verbatim_depth <- tibble(
+  verbatimDepth = map_chr(res, "key"),
+  count = map_int(res, "records")
+)
+
+ggplot(verbatim_depth, aes(x = verbatimDepth, y = count)) +
+  geom_bar(stat = "identity") +
+  coord_flip()
+```
+
+![](depth_files/figure-gfm/verbatim%20depth-1.png)<!-- -->
+
+I don’t know what are these, I don’t understand it but I tried. Please
+take it with a grain of salt, bye :3
