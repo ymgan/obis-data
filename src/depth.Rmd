@@ -1,0 +1,80 @@
+---
+title: "Check depth in OBIS data"
+author: "Yi-Ming Gan"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+## Check records with depth <= 0 meters
+
+
+```{r check depth record, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(lubridate)
+library(httr)
+library(robis)
+
+url <- "https://api.obis.org/"
+r = GET(url, path = "v3/occurrence", query = list(enddepth = 0))
+content(r)$total
+```
+
+There are many records with negative depth. How many are they?
+
+```{r depth occ count, warning=FALSE, message=FALSE}
+# variables
+end_depth = 0  # in meters
+max_end_depth = -11000
+
+# initialize tibble with end_depth at 100m interval
+occ_df <- tibble(end_depth = seq(0, max_end_depth, -100))
+
+# function to get occurrence record count per end_depth
+get_occ_count_with_end_depth <- function(end_depth){
+  url <- "https://api.obis.org/"
+  r <- GET(url, path = "v3/occurrence", query = list(enddepth = end_depth))
+  count <- content(r)$total  # get the count of records from query content
+  return(count)
+}
+
+# create columns of record count for each of end_depth
+occ_df <- occ_df %>%
+  rowwise() %>%
+  mutate(
+    count = get_occ_count_with_end_depth(end_depth)
+    )
+
+occ_df
+
+# plot them into bar chart
+ggplot(occ_df, aes(x = end_depth, y = count)) + 
+  geom_bar(stat = "identity") +
+  scale_y_continuous(trans="log10")
+```
+
+## What are taxa of these records where depth < 0?
+
+Since the web service takes integer for `enddepth` and 0 is a valid depth value. Attempt query for facets with taxon `class` with enddepth = -1.
+
+```{r taxon class negative depth, warning=FALSE, message=FALSE}
+# GET request with parameters
+url <- "https://api.obis.org/"
+r <- GET(url, path = "v3/facet", query = list(facets = "class", enddepth = -1))
+results <- content(r)$results$class
+
+# create a tibble of each taxonomic class with the count
+class_negative_depth <- tibble(
+  class = map_chr(results, "key"),
+  count = map_int(results, "records")
+) %>% arrange(desc(count))
+
+class_negative_depth
+
+ggplot(class_negative_depth, aes(x = count, y = class)) + 
+  geom_col(stat = "identity")
+
+```
+
+Aside from birds (Aves) where the records should not use `minimumDepthInMeters` and `maximumDepthInMeters` to document the distance above surface, the rest of the records with negative depth seems to be misunderstanding of the terms definition.
+
+
